@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "tsx --watch src src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "types": "tsc --project tsconfig.json",
     "prepare": "husky install"
