@@ -1,16 +1,52 @@
 import {
   CollectionResultMap,
   ColorAlias,
-  ColorAliasObject,
+  ColorAliasMap,
   ColorNonAlias,
-  ColorNonAliasObject,
+  ColorNonAliasMap,
   ColorVariable,
   ModeResultMap,
   PluginResult,
 } from '@/types/plugin';
+import { isWithVariant } from './generator';
+
+function fixUpColors(colors: ColorNonAliasMap) {
+  colors.forEach((color) => {
+    const isHasVariant = isWithVariant(colors, color, true);
+    const name = [color.name, color.variant].filter(Boolean).join('-');
+
+    if (!isHasVariant) return;
+
+    colors.delete(color.name);
+    colors.set(name, {
+      value: color.value,
+      name,
+      variant: 'default',
+    });
+  });
+}
+
+function fixUpAliases(aliases: ColorAliasMap) {
+  aliases.forEach((alias) => {
+    const isHasVariant = isWithVariant(aliases, alias, true);
+    const name = [alias.name, alias.variant].filter(Boolean).join('-');
+
+    if (!isHasVariant) return;
+
+    aliases.delete(alias.name);
+    aliases.set(name, {
+      value: {
+        name: alias.value.name,
+        variant: null,
+      },
+      name,
+      variant: 'default',
+    });
+  });
+}
 
 export function extractColors(colorVariables: ColorVariable[]) {
-  const colors = new Map<string, ColorNonAliasObject>();
+  const colors: ColorNonAliasMap = new Map();
 
   colorVariables
     .filter((value) => !value.isAlias)
@@ -28,15 +64,17 @@ export function extractColors(colorVariables: ColorVariable[]) {
       colors.set(value.name, {
         value: value.value,
         name: colorNames.slice(0, -1).join('-'),
-        variant: colorNames.at(-1),
+        variant: colorNames.at(-1) ?? null,
       });
     });
+
+  fixUpColors(colors);
 
   return colors;
 }
 
 export function extractAliases(colorVariables: ColorVariable[]) {
-  const aliases = new Map<string, ColorAliasObject>();
+  const aliases: ColorAliasMap = new Map();
 
   colorVariables
     .filter((value) => value.isAlias)
@@ -56,12 +94,14 @@ export function extractAliases(colorVariables: ColorVariable[]) {
       aliases.set(value.name, {
         value: {
           name: aliasNames.slice(0, -1).join('-'),
-          variant: aliasNames.at(-1),
+          variant: aliasNames.at(-1) ?? null,
         },
         name: colorNames.slice(0, -1).join('-'),
-        variant: colorNames.at(-1),
+        variant: colorNames.at(-1) ?? null,
       });
     });
+
+  fixUpAliases(aliases);
 
   return aliases;
 }
