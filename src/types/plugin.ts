@@ -1,14 +1,14 @@
-export type BaseColorVariable = {
+export type BaseVariable = {
   name: string;
   type: string;
 };
 
-export type ColorNonAlias = BaseColorVariable & {
+export type ReferenceVariable = BaseVariable & {
   isAlias: false;
   value: string;
 };
 
-export type ColorAlias = BaseColorVariable & {
+export type ReferingVariable = BaseVariable & {
   isAlias: true;
   value: {
     collection: string;
@@ -16,15 +16,15 @@ export type ColorAlias = BaseColorVariable & {
   };
 };
 
-export type ColorVariable = ColorNonAlias | ColorAlias;
+export type Variable = ReferenceVariable | ReferingVariable;
 
-export type ColorNonAliasObject = {
+export type ReferenceObject = {
   value: string;
   name: string;
   variant: string | null;
 };
 
-export type ColorAliasObject = {
+export type ReferingObject = {
   value: {
     name: string;
     variant: string | null;
@@ -33,27 +33,31 @@ export type ColorAliasObject = {
   variant: string | null;
 };
 
+export type PluginMode = {
+  name: string;
+  variables: Variable[];
+};
+
+export type PluginCollection = {
+  name: string;
+  modes: PluginMode[];
+};
+
 export type PluginResult = {
   version: `${number}.${number}.${number}`;
   metadata: NonNullable<unknown>;
-  collections: {
-    name: string;
-    modes: {
-      name: string;
-      variables: ColorVariable[];
-    }[];
-  }[];
+  collections: PluginCollection[];
 };
 
-export type ColorNonAliasMap = Map<string, ColorNonAliasObject>;
+export type ReferenceMap = Map<string, ReferenceObject>;
 
-export type ColorAliasMap = Map<string, ColorAliasObject>;
+export type ReferingMap = Map<string, ReferingObject>;
 
 export type ModeResultMap = Map<
   string,
   {
-    colors: ColorNonAliasMap;
-    aliases: ColorAliasMap;
+    references: ReferenceMap;
+    referings: ReferingMap;
   }
 >;
 
@@ -61,17 +65,6 @@ export type CollectionResultMap = Map<string, ModeResultMap>;
 
 export type StringRecord = Record<string, string>;
 
-export type ColorSchema = Map<
-  string,
-  | {
-      isAlias: boolean;
-      value: StringRecord;
-    }
-  | {
-      isAlias: boolean;
-      value: string;
-    }
-  | {}
->;
+export type ConfigSchema = Map<string, string | StringRecord>;
 
-export type ColorConfig = Record<string, string | StringRecord>;
+export type WriteableConfig = Record<string, string | StringRecord>;

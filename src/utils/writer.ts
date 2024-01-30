@@ -1,28 +1,30 @@
-import { ColorConfig, PluginResult, StringRecord } from '@/types/plugin';
-import fs from 'node:fs';
+import {
+  WriteableConfig,
+  ConfigSchema,
+  PluginResult,
+  StringRecord,
+} from '@/types/plugin';
+import fs from 'fs-extra';
+import path from 'node:path';
 import get from 'lodash.get';
-import { getColorVariables } from './extractor';
+import { getCollections } from './extractor';
 import { createSchemas } from './generator';
 
-export function writeConfig(json: PluginResult, writeLocation = './config.ts') {
-  const colorVariables = getColorVariables(json);
-  const schemas = createSchemas(colorVariables);
+function createWriteableConfig(schemas: ConfigSchema) {
+  let config: WriteableConfig = {};
 
-  let config: ColorConfig = {};
-
-  schemas.forEach((value, key) => {
-    const parentKey = key;
-    const isString = typeof value === 'string';
+  schemas.forEach((schema, parentKey) => {
+    const isString = typeof schema === 'string';
 
     if (isString) {
       config = {
         ...config,
-        [key]: get(config, value) as string,
+        [parentKey]: get(config, schema) as string,
       };
       return;
     }
 
-    Object.entries(value).forEach(([childKey, childValue]) => {
+    Object.entries(schema).forEach(([childKey, childValue]) => {
       const isAlias = childValue.split('.').length > 1;
       const value = !isAlias ? childValue : (get(config, childValue) as string);
 
@@ -36,10 +38,25 @@ export function writeConfig(json: PluginResult, writeLocation = './config.ts') {
     });
   });
 
-  fs.writeFileSync(
-    writeLocation,
-    `module.exports = ${JSON.stringify(config, null, 2)}`
-  );
-
   return config;
+}
+
+export function writeConfig(json: PluginResult, writeLocation = './config') {
+  const collections = getCollections(json.collections);
+
+  // Create destination folder
+  fs.ensureDirSync(writeLocation);
+
+  collections.forEach((collection, collectionName) => {
+    collection.forEach((mode, modeName) => {
+      const fileName = [collectionName, modeName, 'ts'].join('.');
+      const schemas = createSchemas(mode);
+      const config = createWriteableConfig(schemas);
+
+      fs.writeFileSync(
+        path.join(writeLocation, fileName),
+        `module.exports = ${JSON.stringify(config, null, 2)}`
+      );
+    });
+  });
 }
