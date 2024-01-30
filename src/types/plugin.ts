@@ -61,4 +61,17 @@ export type CollectionResultMap = Map<string, ModeResultMap>;
 
 export type StringRecord = Record<string, string>;
 
-export type ColorSchema = Map<string, string | StringRecord>;
+export type ColorSchema = Map<
+  string,
+  | {
+      isAlias: boolean;
+      value: StringRecord;
+    }
+  | {
+      isAlias: boolean;
+      value: string;
+    }
+  | {}
+>;
+
+export type ColorConfig = Record<string, string | StringRecord>;
