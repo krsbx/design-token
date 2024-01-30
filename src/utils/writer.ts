@@ -9,6 +9,7 @@ import path from 'node:path';
 import get from 'lodash.get';
 import { getCollections } from './extractor';
 import { createSchemas } from './generator';
+import { EXTENSION, Extension } from './constant';
 
 function createWriteableConfig(schemas: ConfigSchema) {
   let config: WriteableConfig = {};
@@ -41,7 +42,12 @@ function createWriteableConfig(schemas: ConfigSchema) {
   return config;
 }
 
-export function writeConfig(json: PluginResult, writeLocation = './config') {
+export function writeConfig(options: {
+  json: PluginResult;
+  writeLocation: string;
+  extension: Extension;
+}) {
+  const { json, extension, writeLocation } = options;
   const collections = getCollections(json.collections);
 
   // Create destination folder
@@ -49,14 +55,29 @@ export function writeConfig(json: PluginResult, writeLocation = './config') {
 
   collections.forEach((collection, collectionName) => {
     collection.forEach((mode, modeName) => {
-      const fileName = [collectionName, modeName, 'ts'].join('.');
+      const writePath = path.join(writeLocation, collectionName);
+
+      fs.ensureDirSync(writePath);
+
+      const fileName = [modeName, extension].join('.');
       const schemas = createSchemas(mode);
       const config = createWriteableConfig(schemas);
+      const stringified = JSON.stringify(config, null, 2);
 
-      fs.writeFileSync(
-        path.join(writeLocation, fileName),
-        `module.exports = ${JSON.stringify(config, null, 2)}`
-      );
+      let content: string;
+
+      switch (extension) {
+        case EXTENSION.TS:
+          content = `export default ${stringified}`;
+          break;
+
+        case EXTENSION.JS:
+        default:
+          content = `module.exports = ${stringified}`;
+          break;
+      }
+
+      fs.writeFileSync(path.join(writePath, fileName), content);
     });
   });
 }
