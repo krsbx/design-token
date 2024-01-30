@@ -21,16 +21,16 @@ export type ColorVariable = ColorNonAlias | ColorAlias;
 export type ColorNonAliasObject = {
   value: string;
   name: string;
-  variant: string | undefined;
+  variant: string | null;
 };
 
 export type ColorAliasObject = {
   value: {
     name: string;
-    variant: string | undefined;
+    variant: string | null;
   };
   name: string;
-  variant: string | undefined;
+  variant: string | null;
 };
 
 export type PluginResult = {
