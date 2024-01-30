@@ -1,23 +1,24 @@
 import {
-  CollectionResultMap,
-  ColorAliasMap,
-  ColorAliasObject,
-  ColorNonAliasMap,
-  ColorNonAliasObject,
-  ColorSchema,
+  ReferenceMap,
+  ReferenceObject,
+  ReferingMap,
+  ReferingObject,
+  ConfigSchema,
   StringRecord,
 } from '@/types/plugin';
 
 export function isWithVariant(
-  colors: ColorAliasMap | ColorNonAliasMap,
-  color: ColorAliasObject | ColorNonAliasObject,
+  references: ReferenceMap | ReferingMap,
+  reference: ReferenceObject | ReferingObject,
   useVariant = false
 ) {
   const isHasVariant =
-    [...colors.values()].filter((value) => {
-      if (!useVariant) return value.name.startsWith(color.name);
+    [...references.values()].filter((value) => {
+      if (!useVariant) return value.name.startsWith(reference.name);
 
-      const name = [color.name, color.variant].filter(Boolean).join('-');
+      const name = [reference.name, reference.variant]
+        .filter(Boolean)
+        .join('-');
 
       return value.name.startsWith(name);
     }).length > 1;
@@ -25,47 +26,47 @@ export function isWithVariant(
   return isHasVariant;
 }
 
-export function createColorSchemas(
-  colors: ColorNonAliasMap,
-  results: ColorSchema
+export function createReferenceSchema(
+  references: ReferenceMap,
+  results: ConfigSchema
 ) {
-  colors.forEach((color) => {
-    const isHasVariant = isWithVariant(colors, color);
-    const name = [color.name, color.variant].filter(Boolean).join('-');
-    const result = results.get(color.name);
+  references.forEach((reference) => {
+    const isHasVariant = isWithVariant(references, reference);
+    const name = [reference.name, reference.variant].filter(Boolean).join('-');
+    const result = results.get(reference.name);
 
     if (!isHasVariant) {
-      results.set(name, color.value);
+      results.set(name, reference.value);
       return;
     }
 
     if (!result) {
-      results.set(color.name, {});
+      results.set(reference.name, {});
     }
 
-    if (results.get(color.name) && color.variant) {
-      results.set(color.name, {
-        ...(results.get(color.name) as StringRecord),
-        [color.variant]: color.value,
+    if (results.get(reference.name) && reference.variant) {
+      results.set(reference.name, {
+        ...(results.get(reference.name) as StringRecord),
+        [reference.variant]: reference.value,
       });
       return;
     }
 
-    results.set(color.name, color.value);
+    results.set(reference.name, reference.value);
   });
 }
 
-export function createAliasSchemas(
-  aliases: ColorAliasMap,
-  results: ColorSchema
+export function createReferingSchema(
+  referings: ReferingMap,
+  results: ConfigSchema
 ) {
-  aliases.forEach((alias) => {
-    const isHasVariant = isWithVariant(aliases, alias);
-    const name = [alias.name, alias.variant].filter(Boolean).join('-');
-    const value = [alias.value.name, alias.value.variant]
+  referings.forEach((refering) => {
+    const isHasVariant = isWithVariant(referings, refering);
+    const name = [refering.name, refering.variant].filter(Boolean).join('-');
+    const value = [refering.value.name, refering.value.variant]
       .filter(Boolean)
       .join('.');
-    const result = results.get(alias.name);
+    const result = results.get(refering.name);
 
     if (!isHasVariant) {
       results.set(name, value);
@@ -73,30 +74,31 @@ export function createAliasSchemas(
     }
 
     if (!result) {
-      results.set(alias.name, {});
+      results.set(refering.name, {});
     }
 
-    if (results.get(alias.name) && alias.variant) {
-      results.set(alias.name, {
-        ...(results.get(alias.name) as StringRecord),
-        [alias.variant]: value,
+    if (results.get(refering.name) && refering.variant) {
+      results.set(refering.name, {
+        ...(results.get(refering.name) as StringRecord),
+        [refering.variant]: value,
       });
       return;
     }
 
-    results.set(alias.name, value);
+    results.set(refering.name, value);
   });
 }
 
-export function createSchemas(collections: CollectionResultMap) {
-  const results: ColorSchema = new Map();
+export function createSchemas(payload: {
+  references: ReferenceMap;
+  referings: ReferingMap;
+}) {
+  const { references, referings } = payload;
 
-  collections.forEach((collection) => {
-    collection.forEach(({ aliases, colors }) => {
-      createColorSchemas(colors, results);
-      createAliasSchemas(aliases, results);
-    });
-  });
+  const schemas: ConfigSchema = new Map();
 
-  return results;
+  createReferenceSchema(references, schemas);
+  createReferingSchema(referings, schemas);
+
+  return schemas;
 }
