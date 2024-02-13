@@ -4,8 +4,6 @@ import {
   CommandLineStringParameter,
   CommandLineChoiceParameter,
 } from '@rushstack/ts-command-line';
-import { Extension } from '@/utils/constant';
-import { writeConfig } from '../utils/writer';
 
 export class DesignTokenTransformer extends CommandLineParser {
   private writeLocation: CommandLineStringParameter;
@@ -56,12 +54,7 @@ export class DesignTokenTransformer extends CommandLineParser {
       throw new Error('Extension is required');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const json = require(path.resolve(this.sourceLocation.value));
-
-    writeConfig({
-      json,
-      writeLocation: this.writeLocation.value,
-      extension: this.extension.value as Extension,
-    });
   }
 }
