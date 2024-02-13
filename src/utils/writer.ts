@@ -4,12 +4,12 @@ import { TokensBrucke } from '@/types/plugin';
 import { extractTokens } from './extractor';
 import { generateCss } from './generator';
 
-export function writeCss(json: TokensBrucke, dest: string) {
-  const tokens = extractTokens(json);
+export function writeCss(options: { json: TokensBrucke; dest: string }) {
+  const tokens = extractTokens(options.json);
   const css = generateCss(tokens);
 
-  fs.ensureDirSync(path.resolve(dest, '..'));
-  fs.writeFileSync(dest, css);
+  fs.ensureDirSync(path.resolve(options.dest, '..'));
+  fs.writeFileSync(options.dest, css);
 
   return css;
 }

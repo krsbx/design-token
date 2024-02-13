@@ -7,8 +7,14 @@ type AppendStyleOption = {
   styles: string[];
 };
 
-function createStyle(key: string, property: string, value: string) {
-  return `.${key} {
+function createStyle(options: {
+  className: string;
+  property: string;
+  value: string;
+}) {
+  const { className, property, value } = options;
+
+  return `.${className} {
   ${property}: ${value};
 }`;
 }
@@ -17,12 +23,24 @@ function appendStyle(options: AppendStyleOption) {
   const { key, styles, token, tokenName } = options;
 
   if (tokenName.startsWith('bg-') && token.type === 'color') {
-    styles.push(createStyle(tokenName, 'background-color', token.value));
+    styles.push(
+      createStyle({
+        className: tokenName,
+        property: 'background-color',
+        value: token.value,
+      })
+    );
     return;
   }
 
   if (tokenName.startsWith('text-') && token.type === 'color') {
-    styles.push(createStyle(tokenName, 'color', token.value));
+    styles.push(
+      createStyle({
+        className: tokenName,
+        property: 'color',
+        value: token.value,
+      })
+    );
     return;
   }
 
@@ -30,12 +48,24 @@ function appendStyle(options: AppendStyleOption) {
     (tokenName.startsWith('radius-') || tokenName === 'radius') &&
     token.type === 'dimension'
   ) {
-    styles.push(createStyle(tokenName, 'border-radius', token.value));
+    styles.push(
+      createStyle({
+        className: tokenName,
+        property: 'border-radius',
+        value: token.value,
+      })
+    );
     return;
   }
 
   if (tokenName.startsWith('border-') && token.type === 'color') {
-    styles.push(createStyle(tokenName, 'border-color', token.value));
+    styles.push(
+      createStyle({
+        className: tokenName,
+        property: 'border-color',
+        value: token.value,
+      })
+    );
     return;
   }
 
@@ -47,7 +77,13 @@ function appendStyle(options: AppendStyleOption) {
     };
 
     Object.entries(props).forEach(([prop, property]) => {
-      styles.push(createStyle(`${prop}-${tokenName}`, property, token.value));
+      styles.push(
+        createStyle({
+          className: `${prop}-${tokenName}`,
+          property,
+          value: token.value,
+        })
+      );
     });
     return;
   }

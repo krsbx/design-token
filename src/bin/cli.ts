@@ -2,13 +2,12 @@ import path from 'node:path';
 import {
   CommandLineParser,
   CommandLineStringParameter,
-  CommandLineChoiceParameter,
 } from '@rushstack/ts-command-line';
+import { writeCss } from '@/utils/writer';
 
 export class DesignTokenTransformer extends CommandLineParser {
   private writeLocation: CommandLineStringParameter;
   private sourceLocation: CommandLineStringParameter;
-  private extension: CommandLineChoiceParameter;
 
   constructor() {
     super({
@@ -31,14 +30,6 @@ export class DesignTokenTransformer extends CommandLineParser {
       description: 'Write location',
       required: true,
     });
-
-    this.extension = this.defineChoiceParameter({
-      alternatives: ['js', 'ts'],
-      description: 'Extension of the generated file',
-      parameterLongName: '--extension',
-      parameterShortName: '-e',
-      defaultValue: 'ts',
-    });
   }
 
   protected async onExecute() {
@@ -50,11 +41,11 @@ export class DesignTokenTransformer extends CommandLineParser {
       throw new Error('Write location is required');
     }
 
-    if (!this.extension.value) {
-      throw new Error('Extension is required');
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const json = require(path.resolve(this.sourceLocation.value));
+
+    writeCss({
+      dest: path.resolve(this.writeLocation.value),
+      json,
+    });
   }
 }
