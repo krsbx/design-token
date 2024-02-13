@@ -1,6 +1,22 @@
 import { DesignToken, TokensBrucke, Variable } from '@/types/plugin';
 import { hasOwnProperty } from './common';
 
+export function fixupValue(tokens: DesignToken) {
+  Object.entries(tokens).forEach(([, token]) => {
+    if (token.value.startsWith('{') && token.value.endsWith('}')) {
+      const valueKeyRef = token.value.slice(1, -1);
+      const valueRef = tokens[valueKeyRef];
+
+      if (!valueRef) return;
+
+      // eslint-disable-next-line no-param-reassign
+      token.value = valueRef.value;
+    }
+  });
+
+  return tokens;
+}
+
 export function extractTokens(tokensBrucke: TokensBrucke): DesignToken {
   const tokens: DesignToken = {};
 
@@ -37,21 +53,7 @@ export function extractTokens(tokensBrucke: TokensBrucke): DesignToken {
     );
   });
 
-  return tokens;
-}
-
-export function fixupValue(tokens: DesignToken) {
-  Object.entries(tokens).forEach(([, token]) => {
-    if (token.value.startsWith('{') && token.value.endsWith('}')) {
-      const valueKeyRef = token.value.slice(1, -1);
-      const valueRef = tokens[valueKeyRef];
-
-      if (!valueRef) return;
-
-      // eslint-disable-next-line no-param-reassign
-      token.value = valueRef.value;
-    }
-  });
+  fixupValue(tokens);
 
   return tokens;
 }
