@@ -1,135 +1,43 @@
-import { DesignToken, Variable } from '@/types/plugin';
+import { StyleMap, TokenMap } from '@/types/plugin';
+import { getTokenName } from './common';
+import { appendStyle } from './styles';
 
-type AppendStyleOption = {
-  key: string;
-  tokenName: string;
-  token: Variable;
-  styles: string[];
-};
+export function generateCss(tokens: TokenMap) {
+  const styleMap: StyleMap = new Map();
 
-function createStyle(options: {
-  className: string;
-  property: string;
-  value: string;
-}) {
-  const { className, property, value } = options;
-
-  return `.${className} {
-  ${property}: ${value};
-}`;
-}
-
-function appendStyle(options: AppendStyleOption) {
-  const { key, styles, token, tokenName } = options;
-
-  if (tokenName.startsWith('bg-') && token.type === 'color') {
-    styles.push(
-      createStyle({
-        className: tokenName,
-        property: 'background-color',
-        value: token.value,
-      })
-    );
-    return;
-  }
-
-  if (tokenName.startsWith('text-') && token.type === 'color') {
-    styles.push(
-      createStyle({
-        className: tokenName,
-        property: 'color',
-        value: token.value,
-      })
-    );
-    return;
-  }
-
-  if (
-    (tokenName.startsWith('radius-') || tokenName === 'radius') &&
-    token.type === 'dimension'
-  ) {
-    styles.push(
-      createStyle({
-        className: tokenName,
-        property: 'border-radius',
-        value: token.value,
-      })
-    );
-    return;
-  }
-
-  if (tokenName.startsWith('border-') && token.type === 'color') {
-    styles.push(
-      createStyle({
-        className: tokenName,
-        property: 'border-color',
-        value: token.value,
-      })
-    );
-    return;
-  }
-
-  if (key.startsWith('Primitives') && token.type === 'color') {
-    const props = {
-      text: 'color',
-      bg: 'background-color',
-      border: 'border-color',
-    };
-
-    Object.entries(props).forEach(([prop, property]) => {
-      styles.push(
-        createStyle({
-          className: `${prop}-${tokenName}`,
-          property,
-          value: token.value,
-        })
-      );
-    });
-    return;
-  }
-
-  console.log(`Unsupported token: ${key} (${token.type})`);
-}
-
-export function generateCss(tokens: DesignToken) {
-  const styles: string[] = [];
-
-  Object.entries(tokens).forEach(([key, token]) => {
-    const tokenNames = key.split('.');
-    const isHasVariant = tokenNames.length === 4;
-
-    const options = {
-      styles,
-      token,
-      key,
-    };
-
-    if (isHasVariant) {
-      const name = tokenNames.at(-2);
-      const variant = tokenNames.at(-1);
-
-      const tokenName = [name, variant].filter(Boolean).join('-');
-
-      if (!tokenName) return;
-
-      // Change the token name to the one with variant
-      appendStyle({
-        ...options,
-        tokenName,
-      });
-      return;
-    }
-
-    const tokenName = tokenNames.at(-1);
+  tokens.forEach((token, label) => {
+    const tokenName = getTokenName(label);
 
     if (!tokenName) return;
 
-    // Change the token name to the correct one
-    appendStyle({
-      ...options,
-      tokenName,
-    });
+    const options = {
+      tokenName: tokenName.toLowerCase(),
+      styleMap,
+      token,
+      label,
+    };
+
+    appendStyle(options);
   });
 
-  return styles.join('\n\n');
+  const styles: string[] = [];
+
+  styleMap.forEach((style, tokenName) => {
+    const localStyle: string[] = [];
+
+    localStyle.push(`.${tokenName} {`);
+    style.forEach((value, key) => {
+      localStyle.push(`  ${key}: ${value};`);
+    });
+    localStyle.push('}');
+
+    styles.push(localStyle.join('\n'));
+  });
+
+  const css = styles.join('\n\n');
+
+  return {
+    styles: styleMap,
+    css,
+  };
 }

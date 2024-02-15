@@ -6,10 +6,10 @@ import { generateCss } from './generator';
 
 export function writeCss(options: { json: TokensBrucke; dest: string }) {
   const tokens = extractTokens(options.json);
-  const css = generateCss(tokens);
+  const styles = generateCss(tokens);
 
   fs.ensureDirSync(path.resolve(options.dest, '..'));
-  fs.writeFileSync(options.dest, css);
+  fs.writeFileSync(options.dest, styles.css);
 
-  return css;
+  return styles;
 }

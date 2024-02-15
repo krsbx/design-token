@@ -32,3 +32,10 @@ export type TokensBrucke = {
     [subcolletion: string]: SubCollection;
   };
 };
+
+// Maps
+export type TokenMap = Map<string, Variable>;
+
+export type StringMap = Map<string, string>;
+
+export type StyleMap = Map<string, StringMap>;

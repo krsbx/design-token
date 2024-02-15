@@ -1,11 +1,11 @@
-import { DesignToken, TokensBrucke, Variable } from '@/types/plugin';
+import { TokenMap, TokensBrucke, Variable } from '@/types/plugin';
 import { hasOwnProperty } from './common';
 
-export function fixupValue(tokens: DesignToken) {
-  Object.entries(tokens).forEach(([, token]) => {
+function fixupValue<T extends TokenMap>(tokens: T): T {
+  tokens.forEach((token) => {
     if (token.value.startsWith('{') && token.value.endsWith('}')) {
       const valueKeyRef = token.value.slice(1, -1);
-      const valueRef = tokens[valueKeyRef];
+      const valueRef = tokens.get(valueKeyRef);
 
       if (!valueRef) return;
 
@@ -17,15 +17,16 @@ export function fixupValue(tokens: DesignToken) {
   return tokens;
 }
 
-export function extractTokens(tokensBrucke: TokensBrucke): DesignToken {
-  const tokens: DesignToken = {};
+export function extractTokens(tokensBrucke: TokensBrucke): TokenMap {
+  const tokens: TokenMap = new Map();
 
   Object.entries(tokensBrucke).forEach(([collectionName, collections]) => {
-    if (
-      collectionName.startsWith('$meta') ||
-      collectionName.startsWith('$extensions')
-    )
+    if (collectionName.startsWith('$')) return;
+
+    // Add handler for components
+    if (collectionName.startsWith('[') && collectionName.endsWith(']')) {
       return;
+    }
 
     Object.entries(collections).forEach(
       ([subcollectionName, subcollections]) => {
@@ -33,20 +34,20 @@ export function extractTokens(tokensBrucke: TokensBrucke): DesignToken {
 
         if (hasOwnProperty<Variable['value']>(subcollections, 'value')) {
           const name = baseName.join('.');
-          tokens[name] = subcollections as Variable;
+          tokens.set(name, subcollections as Variable);
           return;
         }
 
         Object.entries(subcollections).forEach(([variableName, variables]) => {
           if (hasOwnProperty<Variable['value']>(variables, 'value')) {
             const name = [...baseName, variableName].join('.');
-            tokens[name] = variables as unknown as Variable;
+            tokens.set(name, variables as unknown as Variable);
             return;
           }
 
           Object.entries(variables).forEach(([key, value]) => {
             const name = [...baseName, variableName, key].join('.');
-            tokens[name] = value as unknown as Variable;
+            tokens.set(name, value as unknown as Variable);
           });
         });
       }
