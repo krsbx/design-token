@@ -2,7 +2,8 @@
   "name": "@krsbx/design-token",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "dt-transformer": "./dist/bin/index.js"
   },
