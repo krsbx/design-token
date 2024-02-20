@@ -10,11 +10,35 @@ Convert Figma Design Tokens to useable css.
 ## Installation
 
 ```bash
-npm install design-token-transformer
+npm install @krsbx/design-token
 ```
 
 ## Usage
 
 ```bash
-npx dt-transformer
+npx dt-transformer -s JSON_FILE_PATH -w OUTPUT_FILE_PATH
+```
+
+## Recommended Usage
+
+1. Install [dt-transformer] for the specific project
+
+2. Add `dt-transformer` script to your package.json
+
+```json
+"script": {
+  "generate-css": "dt-transformer -s JSON_FILE_PATH -w OUTPUT_FILE_PATH"
+}
+```
+
+> Change `-s JSON_FILE_PATH` to your JSON file path
+> Change `-w OUTPUT_FILE_PATH` to your output file path
+
+3. Add `generate-css` script to your `prepare` scripts.
+
+```json
+"script": {
+  "generate-css": "dt-transformer -s JSON_FILE_PATH -w OUTPUT_FILE_PATH",
+  "prepare": "husky install && npm run generate-css"
+}
 ```

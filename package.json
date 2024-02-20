@@ -1,5 +1,5 @@
 {
-  "name": "design-token-transformer",
+  "name": "@krsbx/design-token",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -53,5 +53,13 @@
       "eslint --fix",
       "prettier --write"
     ]
-  }
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "package.json",
+    "tsconfig.build.json",
+    "tsconfig.json"
+  ]
 }
