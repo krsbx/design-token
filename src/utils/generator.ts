@@ -11,7 +11,7 @@ export function generateCss(tokens: TokenMap) {
     if (!tokenName) return;
 
     const options = {
-      tokenName: tokenName.toLowerCase(),
+      tokenName: tokenName.replace(/ /g, '-').toLowerCase(),
       styleMap,
       token,
       label,

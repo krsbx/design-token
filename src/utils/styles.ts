@@ -49,8 +49,10 @@ export function appendStyle(options: Option) {
 
     Object.entries(props).forEach(([prop, property]) => {
       const className = [prop, tokenName].join('-');
-      style.set(property, token.value);
-      styleMap.set(className, style);
+      const propStyle = styleMap.get(tokenName) || new Map();
+
+      propStyle.set(property, token.value);
+      styleMap.set(className, propStyle);
     });
     return;
   }
